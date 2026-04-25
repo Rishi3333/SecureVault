@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="row mb-4 align-items-center">
+  <div class="col">
+    <h4 class="mb-1" style="color:#fff; font-weight:700;">
+      <i class="bi bi-folder2-open" style="color:#7c83ff;"></i> My Encrypted Files
+    </h4>
+    <p style="color:#4a5080; font-size:0.875rem; margin:0;">All files are encrypted with AES-256-GCM using a key derived from your password.</p>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+      <i class="bi bi-upload me-1"></i> Upload File
+    </button>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4 g-3">
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="stat-value" style="color:#7c83ff;">{{ files|length }}</div>
+      <div class="stat-label">Total Files</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="stat-value" style="color:#4ade80;"><i class="bi bi-shield-check"></i></div>
+      <div class="stat-label">AES-256-GCM Encrypted</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="stat-value" style="color:#fbbf24;"><i class="bi bi-key-fill"></i></div>
+      <div class="stat-label">Password-Derived Key</div>
+    </div>
+  </div>
+</div>
+
+<!-- File Table -->
+<div class="card" style="overflow:hidden;">
+  <div class="card-body p-0">
+    {% if files %}
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th class="ps-4">File Name</th>
+          <th>Size</th>
+          <th>Status</th>
+          <th>Uploaded At</th>
+          <th style="text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for file in files %}
+        <tr>
+          <td class="ps-4">
+            <i class="bi bi-file-earmark-lock2" style="color:#7c83ff;"></i>
+            <span style="color:#d4d8f0; margin-left:6px;">{{ file.original_name }}</span>
+          </td>
+          <td style="color:#6b7280;">{{ (file.file_size / 1024) | round(1) }} KB</td>
+          <td><span class="badge-enc"><i class="bi bi-lock-fill"></i> Encrypted</span></td>
+          <td style="color:#6b7280; font-size:0.875rem;">{{ file.uploaded_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td style="text-align:center; white-space:nowrap;">
+            <a href="/download/encrypted/{{ file.id }}"
+               class="btn-action btn-enc"
+               title="Download as encrypted .enc file">
+              <i class="bi bi-file-earmark-lock"></i> Encrypted
+            </a>
+            <a href="/download/decrypted/{{ file.id }}"
+               class="btn-action btn-dec"
+               title="Decrypt and download original file">
+              <i class="bi bi-file-earmark-arrow-down"></i> Decrypted
+            </a>
+            <!-- Delete uses POST so file IDs can't be deleted via a crafted link -->
+            <button class="btn-action btn-del"
+                    title="Permanently delete this file"
+                    onclick="confirmDelete({{ file.id }}, '{{ file.original_name | e }}')">
+              <i class="bi bi-trash3"></i> Delete
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>No files uploaded yet.<br>Click <strong style="color:#7c83ff;">Upload File</strong> to get started.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-shield-lock" style="color:#7c83ff;"></i> Upload & Encrypt File</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="/upload" enctype="multipart/form-data">
+        <div class="modal-body">
+          <p style="color:#6b7280; font-size:0.875rem;">
+            Your file will be encrypted with <strong style="color:#a5aaff;">AES-256-GCM</strong> using a key
+            derived from your password — the key is never stored on the server. Max size: 16 MB.
+          </p>
+          <input type="file" name="file" class="form-control" required/>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-lock-fill me-1"></i> Encrypt & Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header" style="border-bottom:1px solid rgba(239,68,68,0.2);">
+        <h5 class="modal-title" style="color:#f87171;">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete File
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="color:#c8cde8; font-size:0.9rem; margin:0;">
+          Permanently delete <strong id="deleteFileName" style="color:#fff;"></strong>?
+          This cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid rgba(239,68,68,0.2);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteForm" method="POST">
+          <button type="submit" class="btn btn-sm"
+                  style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); color:#f87171; font-weight:600;">
+            <i class="bi bi-trash3 me-1"></i> Delete Permanently
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.18s;
+    margin: 2px;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  .btn-enc {
+    background: rgba(124,131,255,0.1);
+    border: 1px solid rgba(124,131,255,0.25) !important;
+    color: #a5aaff;
+  }
+  .btn-enc:hover { background: rgba(124,131,255,0.22); color:#fff; border-color:rgba(124,131,255,0.5) !important; }
+
+  .btn-dec {
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.2) !important;
+    color: #4ade80;
+  }
+  .btn-dec:hover { background: rgba(74,222,128,0.18); color:#fff; border-color:rgba(74,222,128,0.45) !important; }
+
+  .btn-del {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2) !important;
+    color: #f87171;
+  }
+  .btn-del:hover { background: rgba(239,68,68,0.18); color:#fff; border-color:rgba(239,68,68,0.45) !important; }
+</style>
+
+<script>
+  function confirmDelete(fileId, fileName) {
+    document.getElementById('deleteFileName').textContent = fileName;
+    document.getElementById('deleteForm').action = '/delete/' + fileId;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+  }
+</script>
+
+{% endblock %}

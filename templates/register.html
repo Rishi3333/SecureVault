@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block content %}
+<div class="row justify-content-center" style="margin-top: 6rem;">
+  <div class="col-md-4 col-sm-10">
+    <div class="card card-glow p-4">
+      <div class="auth-card-header">
+        <div class="icon-wrap"><i class="bi bi-person-plus-fill"></i></div>
+        <h4>Create your account</h4>
+        <p>Your files will be encrypted with a unique key</p>
+      </div>
+      <form method="POST">
+
+        <!-- Username -->
+        <div class="mb-3">
+          <label class="form-label d-flex align-items-center gap-2">
+            Username
+            <span class="info-icon" onclick="showPolicy('username-policy')" title="Username rules">
+              <i class="bi bi-info-circle-fill"></i>
+            </span>
+          </label>
+          <input type="text" name="username" class="form-control" placeholder="Choose a username" required autofocus/>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label class="form-label d-flex align-items-center gap-2">
+            Password
+            <span class="info-icon" onclick="showPolicy('password-policy')" title="Password rules">
+              <i class="bi bi-info-circle-fill"></i>
+            </span>
+          </label>
+          <input type="password" name="password" class="form-control" placeholder="Choose a strong password"
+                 minlength="8" maxlength="16" required/>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-1">
+          <i class="bi bi-shield-check me-1"></i> Create Account
+        </button>
+      </form>
+      <div class="auth-divider">Already have an account? <a href="/login">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Username Policy Popup -->
+<div class="policy-overlay" id="username-policy" onclick="closePolicy(event, 'username-policy')">
+  <div class="policy-popup">
+    <div class="policy-popup-header">
+      <span><i class="bi bi-person-circle me-2"></i>Username Policy</span>
+      <button class="policy-close" onclick="document.getElementById('username-policy').classList.remove('active')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <ul class="policy-list">
+      <li><i class="bi bi-check2-circle"></i> Between 1 and 80 characters long</li>
+      <li><i class="bi bi-check2-circle"></i> Can contain letters, numbers, and underscores</li>
+      <li><i class="bi bi-check2-circle"></i> Must be unique — no two accounts can share a username</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Password Policy Popup -->
+<div class="policy-overlay" id="password-policy" onclick="closePolicy(event, 'password-policy')">
+  <div class="policy-popup">
+    <div class="policy-popup-header">
+      <span><i class="bi bi-shield-lock me-2"></i>Password Policy</span>
+      <button class="policy-close" onclick="document.getElementById('password-policy').classList.remove('active')">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <ul class="policy-list">
+      <li><i class="bi bi-check2-circle"></i> Minimum <strong>8</strong> characters, maximum <strong>16</strong></li>
+      <li><i class="bi bi-check2-circle"></i> At least one <strong>uppercase</strong> letter (A–Z)</li>
+      <li><i class="bi bi-check2-circle"></i> At least one <strong>number</strong> (0–9)</li>
+      <li><i class="bi bi-check2-circle"></i> At least one <strong>special character</strong> (e.g. <code>!@#$%^&*</code>)</li>
+    </ul>
+    <div class="policy-example">
+      <span class="policy-example-label">Example</span>
+      <code>Vault@2025</code>
+    </div>
+  </div>
+</div>
+
+<style>
+  .info-icon {
+    color: #5a61cc;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: color 0.2s, transform 0.15s;
+    line-height: 1;
+  }
+  .info-icon:hover { color: #7c83ff; transform: scale(1.2); }
+
+  .policy-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+  }
+  .policy-overlay.active { display: flex; }
+
+  .policy-popup {
+    background: #13162a;
+    border: 1px solid rgba(124,131,255,0.25);
+    border-radius: 16px;
+    padding: 1.5rem;
+    width: 320px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,131,255,0.1);
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.92) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .policy-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    color: #a5aaff;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .policy-close {
+    background: none;
+    border: none;
+    color: #4a5080;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .policy-close:hover { color: #e0e4ff; background: rgba(124,131,255,0.1); }
+
+  .policy-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .policy-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.875rem;
+    color: #c8cde8;
+    line-height: 1.4;
+  }
+  .policy-list li i { color: #4ade80; margin-top: 2px; flex-shrink: 0; }
+  .policy-list code {
+    background: rgba(124,131,255,0.12);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: #a5aaff;
+    font-size: 0.82rem;
+  }
+
+  .policy-example {
+    background: rgba(124,131,255,0.07);
+    border: 1px solid rgba(124,131,255,0.15);
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .policy-example-label {
+    font-size: 0.72rem;
+    color: #4a5080;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+  }
+  .policy-example code {
+    background: none;
+    color: #7c83ff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+</style>
+
+<script>
+  function showPolicy(id) {
+    document.getElementById(id).classList.add('active');
+  }
+  function closePolicy(event, id) {
+    if (event.target === document.getElementById(id)) {
+      document.getElementById(id).classList.remove('active');
+    }
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.policy-overlay.active')
+        .forEach(el => el.classList.remove('active'));
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+flask
+bcrypt
+cryptography
+psycopg2-binary
+supabase
+python-dotenv
+gunicorn
