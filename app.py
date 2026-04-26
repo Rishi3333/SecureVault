@@ -48,6 +48,24 @@ ALLOWED_EXTENSIONS = {
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ─── ERROR HANDLERS ───────────────────────────────────────────────────────────
+
+@app.errorhandler(413)
+def file_too_large(e):
+    flash('File is too large. Maximum upload size is 16 MB.', 'danger')
+    return redirect(url_for('dashboard'))
+
+@app.errorhandler(404)
+def not_found(e):
+    flash('The page you were looking for does not exist.', 'danger')
+    return redirect(url_for('dashboard') if logged_in() else url_for('login'))
+
+@app.errorhandler(500)
+def server_error(e):
+    app.logger.error(f'Server error: {e}')
+    flash('An unexpected error occurred. Please try again.', 'danger')
+    return redirect(url_for('dashboard') if logged_in() else url_for('login'))
+
 # ─── DB & STORAGE CLIENTS ─────────────────────────────────────────────────────
 
 def get_supabase() -> Client:
@@ -271,6 +289,10 @@ def upload():
     filename = secure_filename(file.filename)
     if not filename:
         flash('Invalid filename.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.content_length and request.content_length > MAX_FILE_SIZE:
+        flash('File is too large. Maximum upload size is 16 MB.', 'danger')
         return redirect(url_for('dashboard'))
 
     file_data   = file.read()
