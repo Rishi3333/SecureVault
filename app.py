@@ -33,7 +33,7 @@ app.secret_key = os.environ['FLASK_SECRET_KEY']
 
 # ─── CONSTANTS ────────────────────────────────────────────────────────────────
 MAX_FILE_SIZE = 16 * 1024 * 1024
-PBKDF2_ITERS  = 600_000
+PBKDF2_ITERS  = 260_000
 SALT_SIZE     = 32
 NONCE_SIZE    = 12
 BUCKET        = 'encrypted-files'
